@@ -21,7 +21,7 @@ The exporter can be configured through the following environment variables:
 | Name | Description | Default value |
 |------|-------------|---------------|
 | `DIR` | Directory containing the files to serve | `/srv/metrics` |
-| `PORT` | Port on which the content is served | 8080 |
+| `PORT` | Port on which the content is served | 9872 |
 
 ## Use case
 
@@ -39,7 +39,7 @@ spec:
       image: weibeld/file-exporter:0.0.1
       ports:
         - name: metrics
-          containerPort: 8080
+          containerPort: 9872
       volumeMounts:
         - name: metrics
           mountPath: /srv/metrics
@@ -53,10 +53,10 @@ The above [PodSpec](https://kubernetes.io/docs/reference/generated/kubernetes-ap
 Prometheus can scrape the `exporter` container under the following URL:
 
 ```
-http://<pod-ip>:8080/metrics
+http://<pod-ip>:9872/metrics
 ```
 
-> **Note:** as mentioned, any other HTTP path would also work, for example, `http://<pod-ip>:8080`.
+> **Note:** as mentioned, any other HTTP path would also work, for example, `http://<pod-ip>:9872`.
 
 ### Custom configuration
 
