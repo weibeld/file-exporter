@@ -36,7 +36,7 @@ spec:
         - name: metrics
           mountPath: /root/metrics
     - name: exporter
-      image: weibeld/file-exporter:0.0.1
+      image: weibeld/file-exporter:0.0.2
       ports:
         - name: metrics
           containerPort: 9872
@@ -64,7 +64,7 @@ To customise the configurable parameters of the exporter, you can assign custom 
 
 ```yaml
     - name: exporter
-      image: weibeld/file-exporter:0.0.1
+      image: weibeld/file-exporter:0.0.2
       env:
         - name: DIR
           value: /metrics
