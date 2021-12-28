@@ -2,7 +2,7 @@
 
 Dead simple Prometheus exporter that serves metrics stored in local files over HTTP.
 
-[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/weibeld/file-exporter?color=blue&label=docker%20hub)](https://hub.docker.com/repository/docker/weibeld/file-exporter)
+[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/weibeld/file-exporter?color=blue&label=docker%20hub)](https://hub.docker.com/r/weibeld/file-exporter)
 
 ## Description
 
