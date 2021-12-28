@@ -48,22 +48,22 @@ spec:
       emptyDir: {}
 ```
 
-The above [PodSpec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22/#podspec-v1-core) defines two containers that share an [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) volume. The `app` container can have its metrics exported by the `exporter` container by simply writing them to one or more files in its mount of the emptyDir volume (in that case `/root/metrics`). The `exporter` container will then combine and serve these files whenever it receives a scrape request.
+The above [PodSpec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22/#podspec-v1-core) defines two containers that share an [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) volume. The `app` container can have its metrics exported by the `exporter` container by simply writing them to one or more files in its mount of the emptyDir volume (in that case, `/root/metrics`). The `exporter` container will then combine and serve the metrics in these files whenever it receives a scrape request.
 
-Prometheus can scrape the `exporter` container with the URL:
+Prometheus can scrape the `exporter` container under the following URL:
 
 ```
 http://<pod-ip>:8080/metrics
 ```
 
-> **Note:** as mentioned, any other HTTP path would also work, for example; `http://<pod-ip>:8080`.
+> **Note:** as mentioned, any other HTTP path would also work, for example, `http://<pod-ip>:8080`.
 
 ### Custom configuration
 
-To customise the configurable parameters of the exporter, you can assign your desired values to the corresponding environment variables in the container specification:
+To customise the configurable parameters of the exporter, you can assign custom values to the corresponding environment variables in the container specification:
 
 ```yaml
-    - name: generic-exporter
+    - name: exporter
       image: weibeld/file-exporter:0.0.1
       env:
         - name: DIR
