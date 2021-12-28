@@ -1,27 +1,31 @@
-# Generic Prometheus Exporter
+# File Exporter
 
-Dead simple Prometheus exporter that serves metrics stored in local files over HTTP for Prometheus to scrape.
+Dead simple Prometheus exporter that serves metrics stored in local files over HTTP.
 
-🐳 Docker Hub: [weibeld/generic-exporter](https://hub.docker.com/repository/docker/weibeld/generic-exporter)
+[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/weibeld/file-exporter?color=blue&label=docker%20hub)](https://hub.docker.com/repository/docker/weibeld/file-exporter)
 
 ## Description
 
-This exporter gathers the content of files in a specific directory (configurable) and exposes it on a specific port (configurable) over HTTP.
+This exporter combines the content of one or more files in a directory ([configurable](#configuration)) and serves it on a specific port ([configurable](#configuration)) over HTTP.
 
-> The files in the directory are supposed to contain Prometheus metrics in the [Prometheus metrics format](https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format). However, the format of these files is neither checked nor enforced, so the exporter could also be used to expose other data than Prometheus metrics.
+The basic idea is as follows: to export metrics from any process, just write them in the [Prometheus metrics format](https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format) to one or more files in the configured directory, and the exporter will take care of exposing them over HTTP for Prometheus to scrape.
 
-The exported data can be queried by clients over HTTP on any path (including the `/metrics` path which is used by default by Prometheus).
+> **Note:** the exporter does neither check nor enforce the Prometheus metrics format in the files it serves. That means, any inconsistencies will only be reported by Prometheus at scrape time. However, it also means that the exporter can also be used for other data than metrics, as it's in fact just a very simple HTTP server.
+
+The exposed metrics can be scraped on any HTTP path, including `/metrics` which is used by default by Prometheus.
 
 ## Configuration
 
-Some aspects of the exporter can be configured through the following environment variables:
+The exporter can be configured through the following environment variables:
 
-- `DIR`: directory containing the data files (default `/srv/metrics`)
-- `PORT`: port that the exporter listens on (default 8080)
+| Name | Description | Default value |
+|------|-------------|---------------|
+| `DIR` | Directory containing the files to serve | `/srv/metrics` |
+| `PORT` | Port on which the content is served | 8080 |
 
-## Usage
+## Use case
 
-A possible usage for this exporter is to use it as a sidecar container in Kubernetes to export the metrics of another container:
+A common use case for this exporter is using it as a sidecar container in Kubernetes for exporting the metrics of another container:
 
 ```yaml
 spec:
@@ -31,8 +35,8 @@ spec:
       volumeMounts:
         - name: metrics
           mountPath: /root/metrics
-    - name: generic-exporter
-      image: weibeld/generic-exporter:0.0.1
+    - name: exporter
+      image: weibeld/file-exporter:0.0.1
       ports:
         - name: metrics
           containerPort: 8080
@@ -44,34 +48,34 @@ spec:
       emptyDir: {}
 ```
 
-The above [PodSpec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22/#podspec-v1-core) specifies two containers that share an [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) volume. Now, in order for the `app` container to export its metrics, all it has to do is to dump them as files in the [Prometheus metrics format](https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format) into its mount of the emptyDir volume (`/root/metrics`). From there, the metrics are then picked up, combined, and served by the `generic-exporter` container whenever it receives a request from a client.
+The above [PodSpec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.22/#podspec-v1-core) defines two containers that share an [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) volume. The `app` container can have its metrics exported by the `exporter` container by simply writing them to one or more files in its mount of the emptyDir volume (in that case `/root/metrics`). The `exporter` container will then combine and serve these files whenever it receives a scrape request.
 
-### Querying the metrics
+Prometheus can scrape the `exporter` container with the URL:
 
-The metrics exposed by the exporter can be accessed by clients under `http://<pod-ip>:8080`.
+```
+http://<pod-ip>:8080/metrics
+```
 
-Note that any other URL path also works. For example, `http://<pod-ip>:8080/metrics` is also a valid URL, which uses the `/metrics` path that is used by default by Prometheus.
+> **Note:** as mentioned, any other HTTP path would also work, for example; `http://<pod-ip>:8080`.
 
 ### Custom configuration
 
-To configure the exporter, you can set the appropriate environment variables in the container specification:
+To customise the configurable parameters of the exporter, you can assign your desired values to the corresponding environment variables in the container specification:
 
 ```yaml
     - name: generic-exporter
-      image: weibeld/generic-exporter:0.0.1
+      image: weibeld/file-exporter:0.0.1
       env:
         - name: DIR
-          value: /home/my_metrics
+          value: /metrics
         - name: PORT
-          value: "9099"
+          value: "10000"
       ports:
         - name: metrics
-          containerPort: 9099
+          containerPort: 10000
       volumeMounts:
         - name: metrics
-          mountPath: /home/my_metrics
+          mountPath: /metrics
 ```
 
-The above uses `/home/my_metrics` as the metrics directory and listens on port 9099 instead.
-
-> If you change the metrics directory and port, don't forget to also updates the corresponding fields in the `ports` and `volumeMounts` fields of the container specification.
+> **Attention:** when you change the values of the environment variables, don't forget to also update the corresponding values in other parts of the container specification, such as in `volumeMounts` or `ports`.
